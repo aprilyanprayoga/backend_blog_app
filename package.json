@@ -10,14 +10,17 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "cloudinary": "^2.11.0",
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.36.4",
     "express": "^5.2.1",
+    "multer": "^2.3.0",
     "mysql2": "^3.24.3",
     "pg": "^8.23.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
+    "@types/multer": "^2.2.0",
     "@types/node": "^26.5.0",
     "@types/pg": "^8.23.1",
     "drizzle-kit": "^0.28.1",

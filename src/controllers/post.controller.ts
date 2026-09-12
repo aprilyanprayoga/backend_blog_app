@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { PostModel } from "../models/post.model";
+import { uploadToCloudinary, deleteFromCloudinary } from "../services/cloudinary.service";
 
 function generateSlug(title: string): string {
     return (
@@ -68,11 +69,22 @@ export const PostController = {
                 return res.status(400).json({ success: false, message: "category_id tidak ditemukan" });
             }
 
+            let thumbnail: string | null = null;
+            let thumbnailPublicId: string | null = null;
+
+            if (req.file) {
+                const uploaded = await uploadToCloudinary(req.file.buffer);
+                thumbnail = uploaded.secure_url;
+                thumbnailPublicId = uploaded.public_id;
+            }
+
             const post = await PostModel.create({
                 categoryId,
                 title,
                 content,
                 slug: generateSlug(title),
+                thumbnail,
+                thumbnailPublicId,
             });
 
             res.status(201).json({
@@ -112,7 +124,24 @@ export const PostController = {
                 return res.status(400).json({ success: false, message: "category_id tidak ditemukan" });
             }
 
-            const post = await PostModel.update(id, { categoryId, title, content });
+            let thumbnail: string | null | undefined = undefined;
+            let thumbnailPublicId: string | null | undefined = undefined;
+
+            if (req.file) {
+                if (existing.thumbnailPublicId) {
+                    await deleteFromCloudinary(existing.thumbnailPublicId);
+                }
+                const uploaded = await uploadToCloudinary(req.file.buffer);
+                thumbnail = uploaded.secure_url;
+                thumbnailPublicId = uploaded.public_id;
+            }
+
+            const post = await PostModel.update(id, {
+                categoryId,
+                title,
+                content,
+                ...(thumbnail !== undefined && { thumbnail, thumbnailPublicId }),
+            });
 
             res.status(200).json({
                 success: true,
@@ -132,6 +161,10 @@ export const PostController = {
 
             if (!deleted) {
                 return res.status(404).json({ success: false, message: "Artikel tidak ditemukan" });
+            }
+
+            if (deleted.thumbnailPublicId) {
+                await deleteFromCloudinary(deleted.thumbnailPublicId);
             }
 
             res.status(200).json({ success: true, message: "Artikel berhasil dihapus" });
