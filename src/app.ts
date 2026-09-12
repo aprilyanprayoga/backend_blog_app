@@ -1,5 +1,6 @@
 import express from "express";
 import categoryRoutes from "./routes/category.routes";
+import postRoutes from "./routes/post.routes";
 
 const app = express();
 
@@ -10,5 +11,6 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/categories", categoryRoutes);
+app.use("/api/posts", postRoutes);
 
 export default app;
