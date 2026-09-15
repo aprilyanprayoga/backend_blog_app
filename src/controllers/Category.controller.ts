@@ -95,8 +95,15 @@ export const CategoryController = {
             }
 
             res.status(200).json({ success: true, message: "Kategori berhasil dihapus" });
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
+            // Kode error MySQL untuk pelanggaran foreign key constraint
+            if (err?.errno === 1451 || err?.code === "ER_ROW_IS_REFERENCED_2") {
+                return res.status(400).json({
+                    success: false,
+                    message: "Kategori masih dipakai oleh artikel. Hapus atau pindahkan artikelnya dulu.",
+                });
+            }
             res.status(500).json({ success: false, message: "Terjadi kesalahan server" });
         }
     },
